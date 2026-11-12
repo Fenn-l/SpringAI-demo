@@ -1,0 +1,44 @@
+spring:
+  application:
+    name: ai-demo
+  ai:
+    ollama:
+      base-url: http://localhost:11434 # ollama服务地址， 这就是默认值
+      chat:
+        model: deepseek-r1:8b
+        options:
+          temperature: 0.8 # 模型温度，影响模型⽣成结果的随机性，越⼩越稳定
+    openai:
+      # 注意：不要写成 .../compatible-mode/v1，Spring AI 会自动拼 /v1/chat/completions，
+      # 写全了会变成 /v1/v1/chat/completions 报 404
+      base-url: https://dashscope.aliyuncs.com/compatible-mode
+      # 【安全修复】原文件此处明文写死了一个真实可用的 DashScope API Key，属于密钥泄露。
+      # 已改为从环境变量读取；运行前请执行：
+      #   set DASHSCOPE_API_KEY=你的密钥   (Windows)  /  export DASHSCOPE_API_KEY=你的密钥  (Linux/Mac)
+      # 强烈建议：该密钥已经过明文暴露，请立刻到阿里云百炼/DashScope 控制台「重置/轮转」它。
+      api-key: ${DASHSCOPE_API_KEY}
+      chat:
+        options:
+          # qwen-max-latest 在当前账号不可用（DashScope 返回 404 model_not_found），
+          # 换成已确认可用的 qwen-plus-latest；也可用 qwen-max / qwen-plus
+          model: qwen3.8-flash #qwen-plus-latest
+          temperature: 0.7
+      embedding:
+        options:
+          model: text-embedding-v3
+          dimensions: 1024
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/spring_ai_demo
+    username: root
+    # 【安全修复】数据库密码改为环境变量注入，保留默认值便于本地直接运行；
+    # 生产/共享环境请通过环境变量 DB_PASSWORD 覆盖，切勿把真实密码提交到仓库。
+    password: ${DB_PASSWORD:zxcv1234}
+  servlet:
+    multipart:
+      max-file-size: 30MB
+      max-request-size: 40MB
+logging:
+  level:
+    org.springframework.ai: debug # AI对话的⽇志级别
+    com.ape.ai: debug # 本项⽬的⽇志级别
